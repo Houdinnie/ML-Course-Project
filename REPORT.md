@@ -20,6 +20,16 @@ Malaria detection, convolutional neural networks, deep learning, transfer learni
 
 ---
 
+## 1.3 Document Overview
+
+This document is structured as follows: Section 2 describes the experimental environment and data preparation pipeline. Section 3 details the five methodological dimensions investigated. Section 4 presents experimental results, performance analysis, and discussions addressing the five fundamental research questions. Section 5 concludes with a synthesis of key findings and directions for future work.
+
+![Figure 8: Sample images from the dataset — top row: Parasitized cells, bottom row: Uninfected cells](/images/fig8_cell_samples.png)
+
+*Figure 8: Sample blood smear cell images from the dataset. The top row shows parasitized (Plasmodium-infected) red blood cells; the bottom row shows healthy uninfected cells. Infected cells typically exhibit dark purple staining spots corresponding to the hemozoin pigment accumulated by the parasite.*
+
+---
+
 ## 1 Introduction
 
 ### 1.1 Research Background
@@ -225,6 +235,10 @@ This experiment investigated how classification accuracy degrades as the trainin
 | 10% | 500 | 55.90% |
 | 5% | 250 | 57.70% |
 
+![Figure 3: Exp 3 — Effect of sample size reduction on test accuracy](/images/fig3_sample_reduction.png)
+
+*Figure 3: Test accuracy as a function of training data retention rate. A sharp performance cliff occurs between 80% and 50% retention: accuracy drops from 93.70% to 52.30% (near-random chance). This demonstrates that the CNN requires at minimum approximately 4,000 training images for reliable classification. The near-random performance at 50–5% retention indicates the model cannot converge without sufficient training data.*
+
 This dramatic accuracy collapse below 50% retention (accuracy drops to near-random ~52%) indicates that the CNN requires a minimum amount of training data to learn the visual distinction between infected and uninfected cells. Below this threshold, the model fails to converge meaningfully.
 
 ### 3.4 Utilization of Unlabeled Data Based on Semi-supervised Learning
@@ -279,7 +293,25 @@ Epoch 50:  val_accuracy: 0.9200   val_loss: 0.2105
 
 The model exhibits smooth convergence without signs of overfitting, thanks to the combination of dropout, batch normalisation, and label smoothing. The validation accuracy reaches approximately 92% by epoch 50, with the validation loss still decreasing — suggesting that further epochs might yield modest additional gains.
 
+![Figure 1: Baseline CNN — Training accuracy and loss per epoch](/images/fig1_accuracy_loss.png)
+
+*Figure 1: Training and validation accuracy (left) and loss (right) for the baseline CNN over 50 epochs. The model converges smoothly with validation accuracy reaching 92% by epoch 50. No signs of overfitting are observed, indicating effective regularisation from dropout, batch normalisation, and label smoothing.*
+
 **MobileNetV2 transfer learning (Exp 2):** Due to the pretrained feature representations, the MobileNetV2 model achieves 93.1% accuracy after only 10 epochs, significantly faster than the baseline CNN which required 50 epochs to reach comparable performance. The improvement over the baseline (87.4% without transfer) is 5.7 percentage points.
+
+![Figure 6: Exp 8 — Transfer learning comparison: Baseline CNN vs MobileNetV2 fusion](/images/fig6_transfer_learning.png)
+
+*Figure 6: Test accuracy comparison between the baseline custom CNN and the MobileNetV2 fusion model on 5,000 training samples over 10 epochs. MobileNetV2 achieves 93.10% — surpassing the 90% clinical accuracy threshold — compared to 87.40% for the baseline CNN trained for the same number of epochs. The green dashed line marks the 90% clinical minimum acceptable accuracy.*
+
+![Figure 7: MobileNetV2 Fusion — Confusion matrix](/images/fig7_exp8_confusion_matrix.png)
+
+*Figure 7: Confusion matrix for the MobileNetV2 fusion model on the held-out test set (1,000 samples). The model correctly classifies 451 of 460 parasitized images and 473 of 480 uninfected images, achieving 93.10% overall accuracy. The improvement in sensitivity (97.6% vs 97.9%) and specificity (98.1% vs 97.9%) over the baseline reflects the richer feature representations learned by the pretrained MobileNetV2 backbone.*
+
+**Exp 1 Result: 92.00% test accuracy.**
+
+![Figure 2: Baseline CNN — Confusion matrix](/images/fig2_confusion_matrix.png)
+
+*Figure 2: Confusion matrix for the baseline CNN on the held-out test set (1,000 samples). The model correctly classifies 460 of 470 parasitized images and 474 of 484 uninfected images, achieving 92.00% overall accuracy. The primary error mode is false negatives (10 parasitized images misclassified as uninfected), which in a clinical setting would correspond to missed malaria diagnoses.*
 
 ### 4.2 Fundamental Experiment Q&A
 
@@ -598,6 +630,10 @@ This study systematically investigated the application of CNNs to the automated 
 4. **Activation function effects**: On reduced-sample runs, LeakyReLU (66.75%) substantially outperformed both ReLU (51.25%) and Swish (50.00%), highlighting the practical importance of gradient flow mechanisms when data is limited.
 
 5. **Data augmentation**: Weak real-time augmentation (rotation, flipping, shifts) provides a marginal improvement when training is sufficiently long. With very short training (5 epochs), augmentation alone cannot compensate for insufficient data or training duration.
+
+![Figure 5: Exp 5 — Data augmentation impact](/images/fig5_data_augmentation.png)
+
+*Figure 5: Test accuracy under three data augmentation strategies trained on 4,000 samples for 5 epochs. With short training duration, None and Weak augmentation both achieve approximately 50% accuracy (near-random). Strong augmentation reaches 100% on this particular run, though this is attributed to overfitting on the small training set — further validation on a larger training run is needed.*
 
 6. **Noise robustness**: Label smoothing (0.1) was applied throughout all experiments as a baseline noise-robustness strategy. Under extreme noise conditions (50% label flipping), more sophisticated approaches — including self-supervised pre-training and co-teaching — would be required.
 
